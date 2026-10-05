@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Panel | Reliance Finance</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- LOGIN -->
+
+    <div class="admin-login" id="adminLogin">
+
+        <div class="admin-login-box">
+
+            <div class="admin-logo">R</div>
+
+            <h1>Admin Login</h1>
+
+            <p>Reliance Finance Administration</p>
+
+            <form id="loginForm">
+
+                <label>Username</label>
+
+                <input
+                    type="text"
+                    id="adminUsername"
+                    placeholder="Enter username"
+                    required
+                >
+
+                <label>Password</label>
+
+                <input
+                    type="password"
+                    id="adminPassword"
+                    placeholder="Enter password"
+                    required
+                >
+
+                <button type="submit">
+                    Login
+                </button>
+
+                <p class="login-error" id="loginError"></p>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- DASHBOARD -->
+
+    <div class="admin-dashboard" id="adminDashboard">
+
+        <header class="admin-header">
+
+            <div>
+                <h2>RELIANCE FINANCE</h2>
+                <span>Admin Panel</span>
+            </div>
+
+            <button id="logoutBtn">
+                Logout
+            </button>
+
+        </header>
+
+
+        <main class="admin-main">
+
+            <div class="admin-title">
+
+                <div>
+                    <h1>Applications</h1>
+
+                    <p>
+                        Manage submitted loan applications.
+                    </p>
+                </div>
+
+                <button
+                    class="download-btn"
+                    id="downloadBtn"
+                >
+                    Download CSV
+                </button>
+
+            </div>
+
+
+            <!-- STATS -->
+
+            <div class="admin-stats">
+
+                <div class="admin-stat-card">
+
+                    <span>Total Applications</span>
+
+                    <strong id="totalApplications">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="admin-stat-card">
+
+                    <span>Personal Loans</span>
+
+                    <strong id="personalCount">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="admin-stat-card">
+
+                    <span>Home Loans</span>
+
+                    <strong id="homeCount">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="admin-stat-card">
+
+                    <span>Business Loans</span>
+
+                    <strong id="businessCount">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- APPLICATIONS -->
+
+            <div class="applications-box">
+
+
+                <!-- SEARCH -->
+
+                <div class="admin-filters">
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search name, mobile, Gmail, loan type..."
+                    >
+
+                </div>
+
+
+                <div class="table-heading">
+
+                    <h2>
+                        Loan Applications
+                    </h2>
+
+                    <button id="refreshBtn">
+                        ↻ Refresh
+                    </button>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>Date</th>
+
+                                <th>Name</th>
+
+                                <th>Mobile</th>
+
+                                <th>Email</th>
+
+                                <th>Loan Type</th>
+
+                                <th>Amount</th>
+
+                                <th>State</th>
+
+                                <th>Income</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="applicationsTable">
+
+                            <tr>
+
+                                <td colspan="9">
+                                    Loading applications...
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <script>
+
+        /* =========================
+           ELEMENTS
+        ========================= */
+
+        const adminLogin =
+            document.getElementById("adminLogin");
+
+        const adminDashboard =
+            document.getElementById("adminDashboard");
+
+        const loginForm =
+            document.getElementById("loginForm");
+
+        const loginError =
+            document.getElementById("loginError");
+
+        const logoutBtn =
+            document.getElementById("logoutBtn");
+
+        const applicationsTable =
+            document.getElementById("applicationsTable");
+
+        const totalApplications =
+            document.getElementById("totalApplications");
+
+        const personalCount =
+            document.getElementById("personalCount");
+
+        const homeCount =
+            document.getElementById("homeCount");
+
+        const businessCount =
+            document.getElementById("businessCount");
+
+        const refreshBtn =
+            document.getElementById("refreshBtn");
+
+        const downloadBtn =
+            document.getElementById("downloadBtn");
+
+        const searchInput =
+            document.getElementById("searchInput");
+
+
+        /* =========================
+           GLOBAL APPLICATION DATA
+        ========================= */
+
+        let allApplications = [];
+
+
+        /* =========================
+           LOGIN
+        ========================= */
+
+        loginForm.addEventListener(
+            "submit",
+            function(event) {
+
+                event.preventDefault();
+
+                const username =
+                    document
+                        .getElementById("adminUsername")
+                        .value
+                        .trim();
+
+                const password =
+                    document
+                        .getElementById("adminPassword")
+                        .value;
+
+
+                if (
+                    username === "admin" &&
+                    password === "admin123"
+                ) {
+
+                    adminLogin.style.display = "none";
+
+                    adminDashboard.style.display = "block";
+
+                    loginError.textContent = "";
+
+                    loadApplications();
+
+                } else {
+
+                    loginError.textContent =
+                        "Invalid username or password.";
+
+                }
+
+            }
+        );
+
+
+        /* =========================
+           LOGOUT
+        ========================= */
+
+        logoutBtn.addEventListener(
+            "click",
+            function() {
+
+                adminDashboard.style.display = "none";
+
+                adminLogin.style.display = "flex";
+
+                document.getElementById(
+                    "adminPassword"
+                ).value = "";
+
+            }
+        );
+
+
+        /* =========================
+           LOAD APPLICATIONS
+        ========================= */
+
+        async function loadApplications() {
+
+            applicationsTable.innerHTML = `
+                <tr>
+                    <td colspan="9">
+                        Loading applications...
+                    </td>
+                </tr>
+            `;
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/applications"
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Applications load failed"
+                    );
+
+                }
+
+
+                const applications =
+                    await response.json();
+
+
+                /* SAVE DATA */
+
+                allApplications =
+                    Array.isArray(applications)
+                        ? applications
+                        : [];
+
+
+                /* TOTAL */
+
+                totalApplications.textContent =
+                    allApplications.length;
+
+
+                /* PERSONAL */
+
+                personalCount.textContent =
+                    allApplications.filter(
+                        function(app) {
+
+                            return String(
+                                app.loanType || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    "personal"
+                                );
+
+                        }
+                    ).length;
+
+
+                /* HOME */
+
+                homeCount.textContent =
+                    allApplications.filter(
+                        function(app) {
+
+                            return String(
+                                app.loanType || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    "home"
+                                );
+
+                        }
+                    ).length;
+
+
+                /* BUSINESS */
+
+                businessCount.textContent =
+                    allApplications.filter(
+                        function(app) {
+
+                            return String(
+                                app.loanType || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    "business"
+                                );
+
+                        }
+                    ).length;
+
+
+                /* SHOW DATA */
+
+                renderApplications(
+                    allApplications
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                applicationsTable.innerHTML = `
+                    <tr>
+                        <td colspan="9">
+                            Applications load nahi hui.
+                        </td>
+                    </tr>
+                `;
+
+            }
+
+        }
+
+
+        /* =========================
+           SHOW APPLICATIONS
+        ========================= */
+
+        function renderApplications(
+            applications
+        ) {
+
+            if (
+                !Array.isArray(applications) ||
+                applications.length === 0
+            ) {
+
+                applicationsTable.innerHTML = `
+                    <tr>
+                        <td colspan="9">
+                            No applications found.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+
+            }
+
+
+            applicationsTable.innerHTML =
+                applications
+                    .map(
+                        function(app) {
+
+                            const date =
+                                app.date
+                                    ? new Date(
+                                        app.date
+                                    ).toLocaleString()
+                                    : "-";
+
+
+                            return `
+
+                                <tr>
+
+                                    <td>
+                                        ${app.id || "-"}
+                                    </td>
+
+                                    <td>
+                                        ${date}
+                                    </td>
+
+                                    <td>
+                                        ${app.name || "-"}
+                                    </td>
+
+                                    <td>
+                                        ${app.mobile || "-"}
+                                    </td>
+
+                                    <td>
+                                        ${app.email || "-"}
+                                    </td>
+
+                                    <td>
+                                        ${app.loanType || "-"}
+                                    </td>
+
+                                    <td>
+                                        ₹${app.loanAmount || "-"}
+                                    </td>
+
+                                    <td>
+                                        ${app.state || "-"}
+                                    </td>
+
+                                    <td>
+                                        ₹${app.monthlyIncome || "-"}
+                                    </td>
+
+                                </tr>
+
+                            `;
+
+                        }
+                    )
+                    .join("");
+
+        }
+
+
+        /* =========================
+           SEARCH
+        ========================= */
+
+        searchInput.addEventListener(
+            "input",
+            function() {
+
+                const searchText =
+                    searchInput.value
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, "");
+
+
+                /* EMPTY SEARCH */
+
+                if (searchText === "") {
+
+                    renderApplications(
+                        allApplications
+                    );
+
+                    return;
+
+                }
+
+
+                /* FILTER */
+
+                const filteredApplications =
+                    allApplications.filter(
+                        function(app) {
+
+                            const searchableData = [
+
+                                app.id,
+
+                                app.name,
+
+                                app.mobile,
+
+                                app.email,
+
+                                app.loanType,
+
+                                app.loanAmount,
+
+                                app.state,
+
+                                app.monthlyIncome
+
+                            ]
+                                .map(
+                                    function(value) {
+
+                                        return String(
+                                            value || ""
+                                        )
+                                            .toLowerCase()
+                                            .replace(
+                                                /\s+/g,
+                                                ""
+                                            );
+
+                                    }
+                                )
+                                .join(" ");
+
+
+                            return searchableData.includes(
+                                searchText
+                            );
+
+                        }
+                    );
+
+
+                /* SHOW RESULT */
+
+                renderApplications(
+                    filteredApplications
+                );
+
+            }
+        );
+
+
+        /* =========================
+           REFRESH
+        ========================= */
+
+        refreshBtn.addEventListener(
+            "click",
+            function() {
+
+                searchInput.value = "";
+
+                loadApplications();
+
+            }
+        );
+
+
+        /* =========================
+           DOWNLOAD CSV
+        ========================= */
+
+        downloadBtn.addEventListener(
+            "click",
+            async function() {
+
+                try {
+
+                    const response =
+                        await fetch(
+                            "/applications"
+                        );
+
+
+                    const applications =
+                        await response.json();
+
+
+                    if (
+                        !Array.isArray(
+                            applications
+                        ) ||
+                        applications.length === 0
+                    ) {
+
+                        alert(
+                            "Download karne ke liye koi application nahi hai."
+                        );
+
+                        return;
+
+                    }
+
+
+                    const headers = [
+
+                        "ID",
+                        "Date",
+                        "Name",
+                        "Mobile",
+                        "Email",
+                        "Loan Type",
+                        "Loan Amount",
+                        "State",
+                        "Monthly Income"
+
+                    ];
+
+
+                    const rows =
+                        applications.map(
+                            function(app) {
+
+                                return [
+
+                                    app.id || "",
+
+                                    app.date || "",
+
+                                    app.name || "",
+
+                                    app.mobile || "",
+
+                                    app.email || "",
+
+                                    app.loanType || "",
+
+                                    app.loanAmount || "",
+
+                                    app.state || "",
+
+                                    app.monthlyIncome || ""
+
+                                ];
+
+                            }
+                        );
+
+
+                    const csv = [
+
+                        headers,
+
+                        ...rows
+
+                    ]
+                        .map(
+                            function(row) {
+
+                                return row
+                                    .map(
+                                        function(value) {
+
+                                            return `"${String(
+                                                value
+                                            ).replace(
+                                                /"/g,
+                                                '""'
+                                            )}"`;
+
+                                        }
+                                    )
+                                    .join(",");
+
+                            }
+                        )
+                        .join("\n");
+
+
+                    const blob =
+                        new Blob(
+                            [csv],
+                            {
+                                type:
+                                    "text/csv;charset=utf-8"
+                            }
+                        );
+
+
+                    const url =
+                        URL.createObjectURL(
+                            blob
+                        );
+
+
+                    const link =
+                        document.createElement(
+                            "a"
+                        );
+
+
+                    link.href = url;
+
+                    link.download =
+                        "loan-applications.csv";
+
+
+                    document.body.appendChild(
+                        link
+                    );
+
+                    link.click();
+
+                    document.body.removeChild(
+                        link
+                    );
+
+
+                    URL.revokeObjectURL(
+                        url
+                    );
+
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    alert(
+                        "CSV download nahi ho saka."
+                    );
+
+                }
+
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>
