@@ -36,10 +36,28 @@ app.post("/submit-application", async (req, res) => {
             });
         }
 
-        const db = await getDB();
+        // Mobile number ko string mein rakhenge
+        const mobile = String(application.mobile).trim();
 
-        await db.collection("applications").insertOne({
+        const db = await getDB();
+        const collection = db.collection("applications");
+
+        // CHECK: same mobile number se pehle application hai ya nahi
+        const existingApplication = await collection.findOne({
+            mobile: mobile
+        });
+
+        if (existingApplication) {
+            return res.status(409).json({
+                success: false,
+                message: "Is mobile number se application pehle hi submit ho chuka hai."
+            });
+        }
+
+        // NEW APPLICATION SAVE
+        await collection.insertOne({
             ...application,
+            mobile: mobile,
             created_at: new Date()
         });
 
